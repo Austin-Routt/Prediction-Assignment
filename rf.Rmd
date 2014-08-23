@@ -1,0 +1,218 @@
+Judgment from a Random Forest : Classifying Weight Lifting Performance 
+========================================================
+
+### by Austin Routt
+
+## Abstract
+The following paper illustrates the use of a random forest method of prediction for classifying the performance of individual dumbbell bicep curls. A large weight lifting data set, with measurements taken from several accelerometers, was first cleaned and then partitioned into a training  and a test set. After obtaining a model, cross-validation revealed it to have an accuracy of 99.24% and thus an out of sample error estimate of approximately 0.76%. Finding this level of accuracy to be more than sufficient, the random forest model was used to successfully classify twenty unknown observations, completing the assignment laid out by the JHU Practical Machine Learning Course Project.  
+
+
+## Introduction 
+Do you fathom that you can lift weights correctly? I personally cannot tell the difference between proper execution and error when it comes to performing a unilateral dumbbell bicep curl. I doubt the average American can either, thus the majority of us seem to have a need for a personal trainer that we cannot afford. Perhaps that is why human activity recognition is swiftly becoming more relevant in our modern world, and what is of growing interest is not exactly what we are doing, but how well we are doing it. This project seeks to create a model for a [Weight Lifting Exercise Dataset](http://groupware.les.inf.puc-rio.br/static/WLE/WearableComputing_weight_lifting_exercises_biceps_curl_variations.csv) that provides accelerometer measurements for unilateral dumbbell bicep curls done in five different fashions: one correct and four that replicate common mistakes. The general idea being that, with an accurate model and the proper measuring devices, one can determine the performance of his/her bicep curls without human assistance.  
+
+## Background
+
+The original Weight Lifting Exercise Dataset is provided by [Groupware@LES](http://groupware.les.inf.puc-rio.br/har) under the [The CC BY-SA license](http://en.wikipedia.org/wiki/Creative_Commons_license). It was created using an on-body sensing approach utilizing accelerometers on the belt, forearm, arm, and dumbell of each participant. According to the data's website, six participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions:
+
+1. Class A: Exactly according to the specification 
+2. Class B: Throwing the elbows to the front 
+3. Class C: Lifting the dumbbell only halfway 
+4. Class D: Lowering the dumbbell only halfway 
+5. Class E: Throwing the hips to the front 
+
+> Participants were supervised by an experienced weight lifter to make sure the execution complied to the manner they were supposed to simulate. The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. We made sure that all participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg).
+
+Although the original data set can be obtained via Groupware@LES, Coursera has provided a mirror to the data, dubbed the training set. Also, they have provided a "test set" of 20 unclassifed obervations, so that participants can be graded on how well their models perform. These can be found via the following inline links:
+
+1. [The Training Set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv)
+2. [The Test Set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv)
+
+
+These are the comma separated files that are utilized in this paper. For further information regarding the original data set, as well as the research conducted by the Groupware@LES, please see their [reseach paper](http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201).
+
+
+
+## Data Processing 
+
+First, the raw training set was downloaded from the appropriate link and read into memory using **read.csv()** .
+
+```{r echo=TRUE, cache=TRUE, results='hide'}
+
+require(caret)
+require(randomForest)
+
+
+##Step1) Download the raw training set and read it into memory
+
+
+
+trainingFile = "pml-training.csv"
+
+if (!file.exists(trainingFile)) {
+    
+	 download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",
+                      destfile = trainingFile, method ="curl")
+}
+
+
+if (!exists("trainingRaw")) {
+	
+	
+	trainingRaw <- read.csv(trainingFile, stringsAsFactors = F)
+}
+
+
+
+```
+
+The raw training set is composed of 19,622 observations with 160 variables, however, upon even the most casual examination, one can clearly see that the majority of these columns are sparsely populated or entirely extraneous; extraneous variables, and variables containing a majority of missing values, could introduce a bias into our model via a lot of unwanted noise.
+
+In particular, the non-numeric columns appear to be extraneous, as they seem to contain values that are either derivable from the raw measurements, or are identifier variables that could potentially introduce noise. This goes for a few of the first numeric columns as well. For instance, take both **user_name** and **cvtd_timestamp**, it simply does not follow that these can help us predict curl performance given that we are to make predictions based on the device measurements. Thus, the raw training set was cleaned by removing non-numeric columns, columns containing more than 60% missing values, and identifier columns. Note that **classe** was added back at the end of this cleaning process; it identifies the corresponding curl, the outcome, that we must train our model to predict.
+
+
+```{r echo=TRUE, cache=TRUE}
+##Step2) Clean the raw training set of all perceived extraneous features
+
+##a) Remove any column that contains a majority of missing values (60%), and store the result in newData
+
+count <- 0
+ q <- data.frame(percent=0)
+ newData <- data.frame(matrix(nrow=length(trainingRaw[,1]), ncol=7))
+ for(i in 1:length(trainingRaw)){
+ y <- sum(is.na(trainingRaw[,i]))
+ n <- y/(length(trainingRaw[,1]))
+ if(n<.6){
+     count <- count + 1
+ 	newData[,count] <- trainingRaw[,i]
+ 	colnames(newData)[count] <- colnames(trainingRaw)[i]
+ }
+ }
+##b)Remove all non-numeric columns and then bind the outcome feature, classe, to the result. Store in an object called 'temp'.
+
+nums <- sapply(newData, is.numeric)
+ 
+ temp <- cbind(newData[,nums], classe = newData$classe)
+ 
+ temp <- temp[,5:length(temp)] 
+
+```
+
+
+Since the test file to be download is not for testing our model, but instead to make predictions with, the cleaned training data must be randomly partitioned into a training (60%) and a test (40%) set; without a proper test set, we will have no way of cross-validation and therefore no way to test the accuracy of the model. 
+
+
+```{r echo=TRUE, cache=TRUE}
+
+
+##Step3)Partion the cleaned training data into two randomly sampled sets, 60% training (Train) and 40% testing (Test). Set the seed value, so results are reproducible.
+  
+ set.seed(3201984)
+
+ inTrain <- createDataPartition(y=temp$classe, p=0.6, list=FALSE) 
+ Train <- temp[inTrain,] 
+ Test <- temp[-inTrain,]
+
+```
+
+Now that there is a large training set, as well as a sizable test set, the model can be trained. For this assignment I have chosen to use the random forest method of classification, as it is a relatively fast approach that is easy to use and does well in the case of classification.
+
+A random forest is an ensemble approach to classification; the main principle behind ensemble methods is that a group of “weak learners” can come together to form a “strong learner”. In this case, the weak learners are decision trees, which take in a training set and, as they are traversed, bucket the data into smaller and smaller sets. When a specified number of trees reach a terminal state, a voting majority is taken between trees, which amounts to the strong learner portion of the ensemble method. Essentially, our model is a gestalt, greater than the sum the individual parts that compose it.
+
+```{r echo=TRUE, cache=TRUE, results='hide'}
+
+##Step4) Using the cleaned and partioned training set, train the model using a random forest classifer. Set the seed value so that results are reproducible.
+
+ set.seed(861986)
+
+##Control the tree using a cross-validation method,"cv", 4 folds,and  allow for parallel computation. Also, print a log for user reassurance.  
+
+ mod <- train(classe~., data = Train, method="rf", trControl = trainControl(method = "cv", number = 4, allowParallel = TRUE,verboseIter = TRUE))
+
+```
+
+Now the new model can be cross-validated against the test set. Using R's **predict()** and **confusionMatrix()** commands, coupled with the test set data, we can determine an estimate of accuracy for our model.
+
+```{r echo=TRUE, cache=TRUE}
+
+
+
+ ##Step5) Use the random forest model to classify the test set, then take the results and use the confusionMatrix() command to get information regarding the model's accuracy.
+
+ pred <- predict(mod, Test)
+ 
+ confusionMatrix(Test$classe, pred)
+
+```
+
+As can be seen in the output of the **confusionMatrix**, our model has a very high accuracy rating; the accuracy of the model is 0.9924. The out of sample error, 1 - accuracy for predictions made against the cross-validation set, would thusly be about 0.0076. This estimated sample error is rather negligible,  considering that the test set is a sample of only 20 observations. Since this translates to roughly only 1 error for every 128 samples, we should expect that few or none of the test samples will be mis-classified.
+
+## Using the Model to Classify Twenty Sample Cases
+
+Now we can demonstrate how to make predictions based on the features we trained our model on. The "test set"" contains 20 observations of 160 variables, however, unlike our training data, the 'classe' feature is absent, which is by virtue of us needing to predict which activity each participant is involved in. Instead, 'classe' has been replaced by the 'problem_id' variable. 
+
+To begin classifying each of the 20 cases, the raw testing set must first be downloaded and read into memory.
+
+```{r echo=TRUE, cache=TRUE}
+##Step6) Download and read in the raw test set
+
+
+testFile = "pml-testing.csv"
+
+if (!file.exists(testFile)) {
+    
+	
+	 download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",
+                      destfile=testFile, method="curl")
+
+
+
+}
+
+if (!exists("testingRaw")) {
+
+	testingRaw <- read.csv(testFile, stringsAsFactors = F)
+}
+
+```
+
+Now, in order to use the model to make predictions on the test set, we must process it in the exact same fashion as the training set. This is required because our model can only make predictions given certain types of variables, the same kinds variables that we trained our model on. Nevertheless, we need not go through the exact same procedure we performed on the training set, we did not run a principal component analysis or standardize the data; instead we need only remove the same features as those removed from the training set.
+
+```{r echo=TRUE}
+
+##Step7) 
+
+##a) Get the list of column names contained in the training set
+
+variables <- colnames(Train)
+
+##b) Replace the last variable name, 'classe', with "problem_id". Technically, we don't need to include this column, but it does not effect the outcome if we do, it will simply be ignored.
+
+variables[53] <- "problem_id"
+
+##c) From testingRaw, take only the subset of columns contained in variables
+
+questions <- testingRaw[, variables]
+
+
+```
+
+
+
+Now that the test set has been made to resemble the altered training set, the model can be used to predict which 'classe' of activity is being performed during each recorded observation.
+
+```{r echo=TRUE}
+
+
+
+##Step8) answer each question by predicting which activity each subject is performing
+
+##a) Store the predicted activities for each problem in an object called answers
+
+answers <- predict(mod,questions)
+
+##b) Print answers as vector
+
+print(as.vector(answers))
+```
+
+According the JHU Practical Machine Learning Course, hosted on Coursera, all predicted values are correct. Based on the method's accuracy, its speed, as well as its ease of use, one can see why the random forest method of prediction has become such a staple amongst statisticians. 

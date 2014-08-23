@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Judgment from a Random Forest : Classifying Weight Lifting Performance </title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<h1>Judgment from a Random Forest : Classifying Weight Lifting Performance </h1>
+
+<h3>by Austin Routt</h3>
+
+<h2>Abstract</h2>
+
+<p>The following paper illustrates the use of a random forest method of prediction for classifying the performance of individual dumbbell bicep curls. A large weight lifting data set, with measurements taken from several accelerometers, was first cleaned and then partitioned into a training  and a test set. After obtaining a model, cross-validation revealed it to have an accuracy of 99.24% and thus an out of sample error estimate of approximately 0.76%. Finding this level of accuracy to be more than sufficient, the random forest model was used to successfully classify twenty unknown observations, completing the assignment laid out by the JHU Practical Machine Learning Course Project.  </p>
+
+<h2>Introduction</h2>
+
+<p>Do you fathom that you can lift weights correctly? I personally cannot tell the difference between proper execution and error when it comes to performing a unilateral dumbbell bicep curl. I doubt the average American can either, thus the majority of us seem to have a need for a personal trainer that we cannot afford. Perhaps that is why human activity recognition is swiftly becoming more relevant in our modern world, and what is of growing interest is not exactly what we are doing, but how well we are doing it. This project seeks to create a model for a <a href="http://groupware.les.inf.puc-rio.br/static/WLE/WearableComputing_weight_lifting_exercises_biceps_curl_variations.csv">Weight Lifting Exercise Dataset</a> that provides accelerometer measurements for unilateral dumbbell bicep curls done in five different fashions: one correct and four that replicate common mistakes. The general idea being that, with an accurate model and the proper measuring devices, one can determine the performance of his/her bicep curls without human assistance.  </p>
+
+<h2>Background</h2>
+
+<p>The original Weight Lifting Exercise Dataset is provided by <a href="http://groupware.les.inf.puc-rio.br/har">Groupware@LES</a> under the <a href="http://en.wikipedia.org/wiki/Creative_Commons_license">The CC BY-SA license</a>. It was created using an on-body sensing approach utilizing accelerometers on the belt, forearm, arm, and dumbell of each participant. According to the data&#39;s website, six participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions:</p>
+
+<ol>
+<li>Class A: Exactly according to the specification </li>
+<li>Class B: Throwing the elbows to the front </li>
+<li>Class C: Lifting the dumbbell only halfway </li>
+<li>Class D: Lowering the dumbbell only halfway </li>
+<li>Class E: Throwing the hips to the front </li>
+</ol>
+
+<blockquote>
+<p>Participants were supervised by an experienced weight lifter to make sure the execution complied to the manner they were supposed to simulate. The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. We made sure that all participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg).</p>
+</blockquote>
+
+<p>Although the original data set can be obtained via Groupware@LES, Coursera has provided a mirror to the data, dubbed the training set. Also, they have provided a &ldquo;test set&rdquo; of 20 unclassifed obervations, so that participants can be graded on how well their models perform. These can be found via the following inline links:</p>
+
+<ol>
+<li><a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">The Training Set</a></li>
+<li><a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">The Test Set</a></li>
+</ol>
+
+<p>These are the comma separated files that are utilized in this paper. For further information regarding the original data set, as well as the research conducted by the Groupware@LES, please see their <a href="http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201">reseach paper</a>.</p>
+
+<h2>Data Processing</h2>
+
+<p>First, the raw training set was downloaded from the appropriate link and read into memory using <strong>read.csv()</strong> .</p>
+
+<pre><code class="r">require(caret)
+require(randomForest)
+
+
+##Step1) Download the raw training set and read it into memory
+
+
+
+trainingFile = &quot;pml-training.csv&quot;
+
+if (!file.exists(trainingFile)) {
+
+     download.file(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;,
+                      destfile = trainingFile, method =&quot;curl&quot;)
+}
+
+
+if (!exists(&quot;trainingRaw&quot;)) {
+
+
+    trainingRaw &lt;- read.csv(trainingFile, stringsAsFactors = F)
+}
+</code></pre>
+
+<p>The raw training set is composed of 19,622 observations with 160 variables, however, upon even the most casual examination, one can clearly see that the majority of these columns are sparsely populated or entirely extraneous; extraneous variables, and variables containing a majority of missing values, could introduce a bias into our model via a lot of unwanted noise.</p>
+
+<p>In particular, the non-numeric columns appear to be extraneous, as they seem to contain values that are either derivable from the raw measurements, or are identifier variables that could potentially introduce noise. This goes for a few of the first numeric columns as well. For instance, take both <strong>user_name</strong> and <strong>cvtd_timestamp</strong>, it simply does not follow that these can help us predict curl performance given that we are to make predictions based on the device measurements. Thus, the raw training set was cleaned by removing non-numeric columns, columns containing more than 60% missing values, and identifier columns. Note that <strong>classe</strong> was added back at the end of this cleaning process; it identifies the corresponding curl, the outcome, that we must train our model to predict.</p>
+
+<pre><code class="r">##Step2) Clean the raw training set of all perceived extraneous features
+
+##a) Remove any column that contains a majority of missing values (60%), and store the result in newData
+
+count &lt;- 0
+ q &lt;- data.frame(percent=0)
+ newData &lt;- data.frame(matrix(nrow=length(trainingRaw[,1]), ncol=7))
+ for(i in 1:length(trainingRaw)){
+ y &lt;- sum(is.na(trainingRaw[,i]))
+ n &lt;- y/(length(trainingRaw[,1]))
+ if(n&lt;.6){
+     count &lt;- count + 1
+    newData[,count] &lt;- trainingRaw[,i]
+    colnames(newData)[count] &lt;- colnames(trainingRaw)[i]
+ }
+ }
+##b)Remove all non-numeric columns and then bind the outcome feature, classe, to the result. Store in an object called &#39;temp&#39;.
+
+nums &lt;- sapply(newData, is.numeric)
+
+ temp &lt;- cbind(newData[,nums], classe = newData$classe)
+
+ temp &lt;- temp[,5:length(temp)] 
+</code></pre>
+
+<p>Since the test file to be download is not for testing our model, but instead to make predictions with, the cleaned training data must be randomly partitioned into a training (60%) and a test (40%) set; without a proper test set, we will have no way of cross-validation and therefore no way to test the accuracy of the model. </p>
+
+<pre><code class="r">##Step3)Partion the cleaned training data into two randomly sampled sets, 60% training (Train) and 40% testing (Test). Set the seed value, so results are reproducible.
+
+ set.seed(3201984)
+
+ inTrain &lt;- createDataPartition(y=temp$classe, p=0.6, list=FALSE) 
+ Train &lt;- temp[inTrain,] 
+ Test &lt;- temp[-inTrain,]
+</code></pre>
+
+<p>Now that there is a large training set, as well as a sizable test set, the model can be trained. For this assignment I have chosen to use the random forest method of classification, as it is a relatively fast approach that is easy to use and does well in the case of classification.</p>
+
+<p>A random forest is an ensemble approach to classification; the main principle behind ensemble methods is that a group of “weak learners” can come together to form a “strong learner”. In this case, the weak learners are decision trees, which take in a training set and, as they are traversed, bucket the data into smaller and smaller sets. When a specified number of trees reach a terminal state, a voting majority is taken between trees, which amounts to the strong learner portion of the ensemble method. Essentially, our model is a gestalt, greater than the sum the individual parts that compose it.</p>
+
+<pre><code class="r">##Step4) Using the cleaned and partioned training set, train the model using a random forest classifer. Set the seed value so that results are reproducible.
+
+ set.seed(861986)
+
+##Control the tree using a cross-validation method,&quot;cv&quot;, 4 folds,and  allow for parallel computation. Also, print a log for user reassurance.  
+
+ mod &lt;- train(classe~., data = Train, method=&quot;rf&quot;, trControl = trainControl(method = &quot;cv&quot;, number = 4, allowParallel = TRUE,verboseIter = TRUE))
+</code></pre>
+
+<p>Now the new model can be cross-validated against the test set. Using R&#39;s <strong>predict()</strong> and <strong>confusionMatrix()</strong> commands, coupled with the test set data, we can determine an estimate of accuracy for our model.</p>
+
+<pre><code class="r"> ##Step5) Use the random forest model to classify the test set, then take the results and use the confusionMatrix() command to get information regarding the model&#39;s accuracy.
+
+ pred &lt;- predict(mod, Test)
+
+ confusionMatrix(Test$classe, pred)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2228    3    0    0    1
+##          B   12 1504    2    0    0
+##          C    0    7 1353    8    0
+##          D    0    0   17 1268    1
+##          E    1    2    4    2 1433
+## 
+## Overall Statistics
+##                                        
+##                Accuracy : 0.992        
+##                  95% CI : (0.99, 0.994)
+##     No Information Rate : 0.286        
+##     P-Value [Acc &gt; NIR] : &lt;2e-16       
+##                                        
+##                   Kappa : 0.99         
+##  Mcnemar&#39;s Test P-Value : NA           
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.994    0.992    0.983    0.992    0.999
+## Specificity             0.999    0.998    0.998    0.997    0.999
+## Pos Pred Value          0.998    0.991    0.989    0.986    0.994
+## Neg Pred Value          0.998    0.998    0.996    0.998    1.000
+## Prevalence              0.286    0.193    0.175    0.163    0.183
+## Detection Rate          0.284    0.192    0.172    0.162    0.183
+## Detection Prevalence    0.284    0.193    0.174    0.164    0.184
+## Balanced Accuracy       0.997    0.995    0.990    0.995    0.999
+</code></pre>
+
+<p>As can be seen in the output of the <strong>confusionMatrix</strong>, our model has a very high accuracy rating; the accuracy of the model is 0.9924. The out of sample error, 1 - accuracy for predictions made against the cross-validation set, would thusly be about 0.0076. This estimated sample error is rather negligible,  considering that the test set is a sample of only 20 observations. Since this translates to roughly only 1 error for every 128 samples, we should expect that few or none of the test samples will be mis-classified.</p>
+
+<h2>Using the Model to Classify Twenty Sample Cases</h2>
+
+<p>Now we can demonstrate how to make predictions based on the features we trained our model on. The &ldquo;test set&rdquo;&ldquo; contains 20 observations of 160 variables, however, unlike our training data, the &#39;classe&#39; feature is absent, which is by virtue of us needing to predict which activity each participant is involved in. Instead, &#39;classe&#39; has been replaced by the &#39;problem_id&#39; variable. </p>
+
+<p>To begin classifying each of the 20 cases, the raw testing set must first be downloaded and read into memory.</p>
+
+<pre><code class="r">##Step6) Download and read in the raw test set
+
+
+testFile = &quot;pml-testing.csv&quot;
+
+if (!file.exists(testFile)) {
+
+
+     download.file(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;,
+                      destfile=testFile, method=&quot;curl&quot;)
+
+
+
+}
+
+if (!exists(&quot;testingRaw&quot;)) {
+
+    testingRaw &lt;- read.csv(testFile, stringsAsFactors = F)
+}
+</code></pre>
+
+<p>Now, in order to use the model to make predictions on the test set, we must process it in the exact same fashion as the training set. This is required because our model can only make predictions given certain types of variables, the same kinds variables that we trained our model on. Nevertheless, we need not go through the exact same procedure we performed on the training set, we did not run a principal component analysis or standardize the data; instead we need only remove the same features as those removed from the training set.</p>
+
+<pre><code class="r">##Step7) 
+
+##a) Get the list of column names contained in the training set
+
+variables &lt;- colnames(Train)
+
+##b) Replace the last variable name, &#39;classe&#39;, with &quot;problem_id&quot;. Technically, we don&#39;t need to include this column, but it does not effect the outcome if we do, it will simply be ignored.
+
+variables[53] &lt;- &quot;problem_id&quot;
+
+##c) From testingRaw, take only the subset of columns contained in variables
+
+questions &lt;- testingRaw[, variables]
+</code></pre>
+
+<p>Now that the test set has been made to resemble the altered training set, the model can be used to predict which &#39;classe&#39; of activity is being performed during each recorded observation.</p>
+
+<pre><code class="r">##Step8) answer each question by predicting which activity each subject is performing
+
+##a) Store the predicted activities for each problem in an object called answers
+
+answers &lt;- predict(mod,questions)
+
+##b) Print answers as vector
+
+print(as.vector(answers))
+</code></pre>
+
+<pre><code>##  [1] &quot;B&quot; &quot;A&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;E&quot; &quot;D&quot; &quot;B&quot; &quot;A&quot; &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;B&quot; &quot;A&quot; &quot;E&quot; &quot;E&quot; &quot;A&quot;
+## [18] &quot;B&quot; &quot;B&quot; &quot;B&quot;
+</code></pre>
+
+<p>According the JHU Practical Machine Learning Course, hosted on Coursera, all predicted values are correct. Based on the method&#39;s accuracy, its speed, as well as its ease of use, one can see why the random forest method of prediction has become such a staple amongst statisticians. </p>
+
+</body>
+
+</html>
+
